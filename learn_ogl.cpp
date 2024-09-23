@@ -11,12 +11,10 @@ void processInput(GLFWwindow *window);
 std::string getShaderFromFile(std::string file_path);
 bool checkForShaderCompileErrors(unsigned int shader);
 bool checkForProgramLinkingErrors(unsigned int program);
+void glfwInitialize();
 
 int main() {
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwInitialize();
 
   GLFWwindow *window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 
@@ -43,23 +41,28 @@ int main() {
   auto c_vertexShaderSource = vertexShaderSource.c_str();
 
   float vertices[] = {
-      // First Triangle
-      0.5f, 0.5f, 0.0f,  // Top Right
-      0.5f, -0.5f, 0.0f, // Bottom Right
-      -0.5f, 0.5f, 0.0f, // Top Left
-      // Second Triangle
-      0.5f, -0.5f, 0.0f,  // Bottom Right
-      -0.5f, -0.5f, 0.0f, // Bottom Right
-      -0.5f, 0.5f, 0.0f,  // Top Center
+      0.5f,  0.5f,  0.0f, // Top Right
+      0.5f,  -0.5f, 0.0f, // Bottom Right
+      -0.5f, -0.5f, 0.0f, // Bottom Left
+      -0.5f, 0.5f,  0.0f, // Top Left
+  };
+  unsigned int indices[] = {
+      0, 1, 3, // First Triangle
+      1, 2, 3  // Second Triangle
   };
 
-  unsigned int VBO;
-  glGenBuffers(1, &VBO);
+  unsigned int EBO;
+  glGenBuffers(1, &EBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+               GL_STATIC_DRAW);
 
   unsigned int VAO;
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
 
+  unsigned int VBO;
+  glGenBuffers(1, &VBO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
@@ -114,8 +117,8 @@ int main() {
 
     /* Draw Vertices with our shaders */
     glUseProgram(shaderProgram);
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -173,4 +176,11 @@ bool checkForProgramLinkingErrors(unsigned int program) {
     return false;
   }
   return true;
+}
+
+void glfwInitialize() {
+  glfwInit();
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
